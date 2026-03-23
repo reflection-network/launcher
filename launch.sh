@@ -5,15 +5,17 @@
 #
 # Environment variables:
 #   REPO_DIR         — path to agent repo (default: current directory)
-#   CONTAINER_NAME   — docker container name (default: agent)
+#   CONTAINER_NAME   — docker container name (default: repo directory name)
 #   ENV_FILE         — path to .env (default: $REPO_DIR/.env)
-#   CREDENTIALS_FILE — path to credentials (default: ~/.claude/.credentials.json)
+#   CREDENTIALS_FILE — path to credentials (default: $REPO_DIR/.credentials.json)
+#   CONTAINER_MEMORY — container memory limit (default: 4g)
 #   POLL_INTERVAL    — seconds between checks (default: 30)
 
 REPO_DIR="${REPO_DIR:-$(pwd)}"
-CONTAINER_NAME="${CONTAINER_NAME:-agent}"
+CONTAINER_NAME="${CONTAINER_NAME:-$(basename "$REPO_DIR")}"
 ENV_FILE="${ENV_FILE:-$REPO_DIR/.env}"
-CREDENTIALS_FILE="${CREDENTIALS_FILE:-${HOME}/.claude/.credentials.json}"
+CREDENTIALS_FILE="${CREDENTIALS_FILE:-$REPO_DIR/.credentials.json}"
+CONTAINER_MEMORY="${CONTAINER_MEMORY:-4g}"
 POLL_INTERVAL="${POLL_INTERVAL:-30}"
 IMAGE_NAME=""
 CURRENT_HASH=""
@@ -91,6 +93,8 @@ start_container() {
   docker run -d \
     --name "$CONTAINER_NAME" \
     --env-file "$ENV_FILE" \
+    --memory "$CONTAINER_MEMORY" \
+    -v "${CONTAINER_NAME}-home:/home/agent" \
     -v "$CREDENTIALS_FILE:/home/agent/.claude/.credentials.json" \
     "${IMAGE_NAME}:latest"
   log "Container started."
@@ -116,6 +120,8 @@ deploy() {
 }
 
 # --- Main ---
+
+trap 'log "Shutting down..."; stop_container; exit 0' INT TERM
 
 CURRENT_HASH="$(get_local_hash)"
 
