@@ -25,7 +25,9 @@ All via environment variables (all optional):
 | `CONTAINER_NAME` | `agent` | Docker container name |
 | `ENV_FILE` | `$REPO_DIR/.env` | Env file passed to `docker run` |
 | `CREDENTIALS_FILE` | `~/.claude/.credentials.json` | Claude credentials to mount |
+| `CONTAINER_MEMORY` | `4g` | Container memory limit (passed to `docker run --memory`) |
 | `POLL_INTERVAL` | `30` | Seconds between git checks |
+| `WEB_PORT` | none | Host port for agent web server (maps to container port 8080). When set, the agent's web page and proxied services are accessible at `http://localhost:$WEB_PORT/`. |
 
 ## Architecture
 

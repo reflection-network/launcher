@@ -10,6 +10,7 @@
 #   CREDENTIALS_FILE — path to credentials (default: $REPO_DIR/.credentials.json)
 #   CONTAINER_MEMORY — container memory limit (default: 4g)
 #   POLL_INTERVAL    — seconds between checks (default: 30)
+#   WEB_PORT         — host port for agent web server (maps to 8080, unset = no mapping)
 
 REPO_DIR="${REPO_DIR:-$(pwd)}"
 CONTAINER_NAME="${CONTAINER_NAME:-$(basename "$REPO_DIR")}"
@@ -90,10 +91,17 @@ stop_container() {
 
 start_container() {
   log "Starting container $CONTAINER_NAME..."
+
+  local port_args=()
+  if [[ -n "${WEB_PORT:-}" ]]; then
+    port_args+=(-p "${WEB_PORT}:8080")
+  fi
+
   docker run -d \
     --name "$CONTAINER_NAME" \
     --env-file "$ENV_FILE" \
     --memory "$CONTAINER_MEMORY" \
+    "${port_args[@]}" \
     -v "${CONTAINER_NAME}-home:/home/agent" \
     -v "$CREDENTIALS_FILE:/home/agent/.claude/.credentials.json" \
     "${IMAGE_NAME}:latest"
@@ -130,6 +138,7 @@ log "  repo:      $REPO_DIR"
 log "  container: $CONTAINER_NAME"
 log "  interval:  ${POLL_INTERVAL}s"
 log "  commit:    $CURRENT_HASH"
+log "  web port:  ${WEB_PORT:-none}"
 
 # Initial deploy from current working copy
 log "Initial deploy..."
